@@ -1,0 +1,52 @@
+server:
+  port: 8081
+swagger-ui:
+  url: "http://localhost:8081/swagger-ui/index.html"
+springdoc:
+  api-docs:
+    path: /api-docs
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      security:
+        protocol: PLAINTEXT
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      value-deserializer-class-config: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      auto-offset-reset: earliest
+      enable-auto-commit: true
+      auto-commit-interval: 1000
+      properties:
+        spring:
+          json:
+            trusted:
+              packages: org.example.kafka.dto
+      security:
+        protocol: PLAINTEXT
+    listener:
+      poll-timeout: 3000
+      type: single
+      concurrency: 3
+  mail:
+    host: localhost
+    port: 1025
+    username:
+    password:
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+eureka:
+  instance:
+    preferIpAddress: true
+  client:
+    registerWithEureka: true
+    fetchRegistry: true
+    serviceUrl:
+      defaultZone: http://localhost:8070/eureka/

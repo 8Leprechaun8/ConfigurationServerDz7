@@ -1,0 +1,88 @@
+server:
+  port: 8080
+swagger-ui:
+  url: "http://localhost:8080/swagger-ui/index.html"
+springdoc:
+  api-docs:
+    path: /api-docs
+spring:
+  liquibase:
+    default-schema: public
+    url: jdbc:postgresql://localhost:5432/postgres
+    user: postgres
+    password: postgres
+    change-log: classpath:db/migration/sqlSchema.sql
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: postgres
+    jpa:
+      hibernate:
+        #        ddl-auto: update
+        show-sql: true
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      security:
+        protocol: PLAINTEXT
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      value-deserializer-class-config: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      auto-offset-reset: earliest
+      enable-auto-commit: true
+      auto-commit-interval: 1000
+      properties:
+        spring:
+          json:
+            trusted:
+              packages: org.example.kafka.dto
+      security:
+        protocol: PLAINTEXT
+    listener:
+      poll-timeout: 3000
+      type: single
+      concurrency: 3
+hibernate:
+  hbm2ddl:
+    auto: update
+eureka:
+  instance:
+    preferIpAddress: true
+  client:
+    registerWithEureka: true
+    fetchRegistry: true
+    serviceUrl:
+      defaultZone: http://localhost:8070/eureka/
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true             # Отображение статуса в actuator/health
+        slidingWindowSize: 100                    # Размер скользящего окна для подсчета ошибок (100 последних вызовов)
+        slidingWindowType: COUNT_BASED            # Тип окна: COUNT_BASED (по количеству), может быть TIME_BASED (по времени)
+        failureRateThreshold: 50                  # Порог ошибок в %: если 50%+ вызовов завершились с ошибкой, цепь размыкается
+        slowCallRateThreshold: 100                # Порог медленных вызовов в % (например, 100%)
+        slowCallDurationThreshold: 2000           # Максимально допустимое время ответа (в мс), всё, что медленнее — считается медленным вызовом
+        permittedNumberOfCallsInHalfOpenState: 10 # Количество тестовых запросов, пропускаемых в состоянии HALF_OPEN для проверки сервиса
+        maxWaitDurationInHalfOpenState: 5000      # Время (в мс) ожидания перед повторной оценкой запросов в HALF_OPEN
+        minimumNumberOfCalls: 2                   # Минимальное число вызовов, прежде чем CircuitBreaker начнет рассчитывать процент ошибок
+        waitDurationInOpenState: 10000            # Время (в мс) нахождения в состоянии OPEN, после чего цепь переходит в HALF_OPEN
+        recordExceptions:                         # Исключения, которые считаются ошибкой (вызывают срабатывание)
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+        ignoreExceptions:                         # Исключения, которые игнорируются (не считаются ошибкой)
+          - java.lang.IllegalArgumentException
+    instances:
+      notificationService:                        # Имя конкретного CircuitBreaker (используется в аннотации @CircuitBreaker)
+        baseConfig: default                       # Наследование от базовой конфигурации
+        failureRateThreshold: 40                  # Переопределение порога (для этого экземпляра — 40%)
+        waitDurationInOpenState: 15000            # Переопределение времени ожидания (15 секунд)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
