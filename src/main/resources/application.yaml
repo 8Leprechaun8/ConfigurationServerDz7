@@ -12,3 +12,8 @@ spring:
           search-locations: classpath:/config
       import-check:
         enabled: false
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
