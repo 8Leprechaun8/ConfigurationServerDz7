@@ -1,3 +1,7 @@
+eureka-server:
+  instance:
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:localhost}
+    port: ${EUREKA_INSTANCE_PORT:8070}
 server:
   port: 8072
 spring:
@@ -34,4 +38,4 @@ eureka:
     registerWithEureka: true
     fetchRegistry: true
     serviceUrl:
-      defaultZone: http://${EUREKA_INSTANCE_HOSTNAME:localhost}:8070/eureka/
+      defaultZone: http://${eureka-server.instance.hostname}:${eureka-server.instance.port}/eureka/
